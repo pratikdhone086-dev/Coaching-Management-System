@@ -1,0 +1,368 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coaching Management System - Dashboard</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script>
+        if (sessionStorage.getItem("isLoggedIn") !== "true") {
+            window.location.href = "index.html";
+        }
+    </script>
+</head>
+<body>
+
+<header>
+    <div class="logo">Coaching Management System</div>
+
+    <div class="header-right">
+        <div class="welcome">
+            Welcome, <span id="username">Teacher</span>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="page-title">
+        <h1>Dashboard</h1>
+        <p>Overview of your coaching management system</p>
+    </div>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Students</h3>
+            <div class="card-value" id="studentCount">0</div>
+        </div>
+
+        <div class="card teacher-card">
+            <h3>Total Teachers</h3>
+            <div class="card-value" id="teacherCount">0</div>
+        </div>
+
+        <div class="card fees-card">
+            <h3>Total Fees Records</h3>
+            <div class="card-value" id="feesCount">0</div>
+            <div class="card-small">
+                Total Amount: ₹<span id="totalFeesAmount">0.00</span>
+            </div>
+        </div>
+
+        <div class="card attendance-card">
+            <h3>Attendance Records</h3>
+            <div class="card-value" id="attendanceCount">0</div>
+        </div>
+
+        <div class="card marks-card">
+            <h3>Marks Records</h3>
+            <div class="card-value" id="marksCount">0</div>
+        </div>
+
+        <div class="card course-card">
+            <h3>Total Courses</h3>
+            <div class="card-value" id="courseCount">0</div>
+        </div>
+
+        <div class="card batch-card">
+            <h3>Total Batches</h3>
+            <div class="card-value" id="batchCount">0</div>
+        </div>
+
+    </div>
+
+    <div class="summary-grid">
+
+        <div class="summary-box">
+            <h2>Attendance Summary</h2>
+
+            <div class="summary-items">
+                <div class="summary-item">
+                    <h4>Present</h4>
+                    <span class="present-text" id="presentCount">0</span>
+                </div>
+
+                <div class="summary-item">
+                    <h4>Absent</h4>
+                    <span class="absent-text" id="absentCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-box">
+            <h2>Marks Summary</h2>
+
+            <div class="summary-items">
+                <div class="summary-item">
+                    <h4>Average Marks</h4>
+                    <span class="average-text" id="averageMarks">0.00</span>
+                </div>
+
+                <div class="summary-item">
+                    <h4>Highest Marks</h4>
+                    <span class="highest-text" id="highestMarks">0</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="quick-box">
+        <h2>Quick Access</h2>
+
+        <div class="quick-links">
+            <button class="quick-btn" onclick="openPage('students.html')">Students</button>
+            <button class="quick-btn" onclick="openPage('teachers.html')">Teachers</button>
+            <button class="quick-btn" onclick="openPage('fees.html')">Fees</button>
+            <button class="quick-btn" onclick="openPage('attendance.html')">Attendance</button>
+            <button class="quick-btn" onclick="openPage('marks.html')">Marks</button>
+            <button class="quick-btn" onclick="openPage('courses.html')">Courses</button>
+            <button class="quick-btn" onclick="openPage('batches.html')">Batches</button>
+        </div>
+    </div>
+
+    <div class="table-box">
+        <h2>Recent Students</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Course</th>
+                    <th>Batch</th>
+                </tr>
+            </thead>
+
+            <tbody id="recentStudentsBody">
+                <tr>
+                    <td colspan="6" class="loading">Loading students...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<footer>
+    Coaching Management System | Java Spring Boot + MySQL
+</footer>
+
+<script>
+    // Login check
+    if (sessionStorage.getItem("isLoggedIn") !== "true") {
+        window.location.href = "index.html";
+    }
+
+    // Show username
+    const savedUsername = sessionStorage.getItem("username");
+
+    if (savedUsername) {
+        document.getElementById("username").innerText = savedUsername;
+    }
+
+    // Open pages
+    function openPage(page) {
+        window.location.href = page;
+    }
+
+    // Logout
+    function logout() {
+        fetch("/teachers/logout", {
+            method: "POST"
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Logout failed");
+            }
+            return response.text();
+        })
+        .then(data => {
+            sessionStorage.removeItem("isLoggedIn");
+            sessionStorage.removeItem("username");
+            alert("Logout successful!");
+            window.location.href = "index.html";
+        })
+        .catch(error => {
+            console.error("Logout error:", error);
+
+            sessionStorage.removeItem("isLoggedIn");
+            sessionStorage.removeItem("username");
+            window.location.href = "index.html";
+        });
+    }
+
+    // Load dashboard data
+    async function loadDashboardCounts() {
+        try {
+            const students = await fetch("/students").then(response => {
+                if (!response.ok) {
+                    throw new Error("Students request failed");
+                }
+                return response.json();
+            });
+
+            const teachers = await fetch("/teachers").then(response => {
+                if (!response.ok) {
+                    throw new Error("Teachers request failed");
+                }
+                return response.json();
+            });
+
+            const fees = await fetch("/fees").then(response => {
+                if (!response.ok) {
+                    throw new Error("Fees request failed");
+                }
+                return response.json();
+            });
+
+            const attendance = await fetch("/attendance").then(response => {
+                if (!response.ok) {
+                    throw new Error("Attendance request failed");
+                }
+                return response.json();
+            });
+
+            const marks = await fetch("/marks").then(response => {
+                if (!response.ok) {
+                    throw new Error("Marks request failed");
+                }
+                return response.json();
+            });
+
+            const courses = await fetch("/courses").then(response => {
+                if (!response.ok) {
+                    throw new Error("Courses request failed");
+                }
+                return response.json();
+            });
+
+            const batches = await fetch("/batches").then(response => {
+                if (!response.ok) {
+                    throw new Error("Batches request failed");
+                }
+                return response.json();
+            });
+
+            // Update counts
+            document.getElementById("studentCount").innerText = students.length;
+            document.getElementById("teacherCount").innerText = teachers.length;
+            document.getElementById("feesCount").innerText = fees.length;
+            document.getElementById("attendanceCount").innerText = attendance.length;
+            document.getElementById("marksCount").innerText = marks.length;
+            document.getElementById("courseCount").innerText = courses.length;
+            document.getElementById("batchCount").innerText = batches.length;
+
+            // Calculate total fees
+            let totalFeesAmount = 0;
+
+            fees.forEach(function(fee) {
+                totalFeesAmount += Number(fee.amount) || 0;
+            });
+
+            document.getElementById("totalFeesAmount").innerText =
+                totalFeesAmount.toFixed(2);
+
+            // Attendance summary
+            let presentCount = 0;
+            let absentCount = 0;
+
+            attendance.forEach(function(record) {
+                if (record.status &&
+                    record.status.toLowerCase() === "present") {
+                    presentCount++;
+                }
+
+                if (record.status &&
+                    record.status.toLowerCase() === "absent") {
+                    absentCount++;
+                }
+            });
+
+            document.getElementById("presentCount").innerText = presentCount;
+            document.getElementById("absentCount").innerText = absentCount;
+
+            // Marks summary
+            let totalMarks = 0;
+            let highestMarks = 0;
+
+            marks.forEach(function(record) {
+                const mark = Number(record.marks) || 0;
+                totalMarks += mark;
+
+                if (mark > highestMarks) {
+                    highestMarks = mark;
+                }
+            });
+
+            let averageMarks = 0;
+
+            if (marks.length > 0) {
+                averageMarks = totalMarks / marks.length;
+            }
+
+            document.getElementById("averageMarks").innerText =
+                averageMarks.toFixed(2);
+
+            document.getElementById("highestMarks").innerText = highestMarks;
+
+            // Recent students
+            loadRecentStudents(students);
+
+        } catch (error) {
+            console.error("Dashboard error:", error);
+
+            if (error.message.includes("failed")) {
+                alert("Unable to load dashboard data. Please login again.");
+            }
+        }
+    }
+
+    // Show recent students
+    function loadRecentStudents(students) {
+        const tbody = document.getElementById("recentStudentsBody");
+        tbody.innerHTML = "";
+
+        if (!students || students.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="no-students">
+                        No students found
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        const recentStudents = students.slice(-5).reverse();
+
+        recentStudents.forEach(function(student) {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${student.id ?? ""}</td>
+                <td>${student.name ?? ""}</td>
+                <td>${student.email ?? ""}</td>
+                <td>${student.mobile ?? ""}</td>
+                <td>${student.course ?? ""}</td>
+                <td>${student.batch ?? ""}</td>
+            `;
+
+            tbody.appendChild(row);
+        });
+    }
+
+    // Start dashboard
+    loadDashboardCounts();
+</script>
+
+</body>
+</html>
