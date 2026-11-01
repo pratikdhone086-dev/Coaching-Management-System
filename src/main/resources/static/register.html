@@ -115,10 +115,6 @@
             font-weight: bold;
         }
 
-        .login a:hover {
-            text-decoration: underline;
-        }
-
         .footer {
             text-align: center;
             margin-top: 25px;
@@ -149,46 +145,26 @@
     <form id="registerForm">
 
         <label for="id">Teacher ID</label>
-        <input
-            type="number"
-            id="id"
-            placeholder="Enter teacher ID"
-            min="1"
-            required
-        >
+        <input type="number" id="id"
+               placeholder="Enter teacher ID"
+               min="1" required>
 
         <label for="name">Name</label>
-        <input
-            type="text"
-            id="name"
-            placeholder="Enter full name"
-            required
-        >
+        <input type="text" id="name"
+               placeholder="Enter full name" required>
 
         <label for="email">Email</label>
-        <input
-            type="email"
-            id="email"
-            placeholder="Enter email"
-            required
-        >
+        <input type="email" id="email"
+               placeholder="Enter email" required>
 
         <label for="username">Username</label>
-        <input
-            type="text"
-            id="username"
-            placeholder="Create username"
-            required
-        >
+        <input type="text" id="username"
+               placeholder="Create username" required>
 
         <label for="password">Password</label>
-        <input
-            type="password"
-            id="password"
-            placeholder="Create password"
-            minlength="6"
-            required
-        >
+        <input type="password" id="password"
+               placeholder="Create password"
+               minlength="6" required>
 
         <button type="submit" class="register-btn" id="registerBtn">
             Create Account
@@ -198,7 +174,7 @@
 
     <div class="login">
         Already have an account?
-        <a href="index.html">Login</a>
+        <a href="login.html">Login</a>
     </div>
 
     <div class="footer">
@@ -208,10 +184,12 @@
 </div>
 
 <script>
+
     const registerForm = document.getElementById("registerForm");
     const registerBtn = document.getElementById("registerBtn");
 
     registerForm.addEventListener("submit", async function(event) {
+
         event.preventDefault();
 
         const teacher = {
@@ -237,6 +215,7 @@
         registerBtn.textContent = "Creating Account...";
 
         try {
+
             const response = await fetch("/teachers/register", {
                 method: "POST",
                 headers: {
@@ -247,25 +226,27 @@
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error("Registration error:", response.status, errorText);
-
-                throw new Error(
-                    "Registration failed. HTTP status: " + response.status
-                );
+                throw new Error("Registration failed: " + errorText);
             }
 
             alert("Teacher account created successfully!");
-            window.location.href = "index.html";
+
+            window.location.href = "login.html";
 
         } catch (error) {
-            console.error("Registration error:", error);
-            alert(error.message || "Registration failed. Please try again.");
+
+            console.error(error);
+            alert(error.message || "Registration failed.");
 
         } finally {
+
             registerBtn.disabled = false;
             registerBtn.textContent = "Create Account";
+
         }
+
     });
+
 </script>
 
 </body>
