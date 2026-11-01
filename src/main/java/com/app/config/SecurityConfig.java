@@ -1,3 +1,4 @@
+
 package com.app.config;
 
 import org.springframework.context.annotation.Bean;
@@ -14,7 +15,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-
         return new BCryptPasswordEncoder();
     }
 
@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/",
                     "/index.html",
+                    "/login.html",
                     "/register.html",
                     "/css/**",
                     "/js/**",
